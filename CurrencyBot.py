@@ -20,14 +20,38 @@ def run_bot(currencyBot):
     comments = subreddit.comments(limit=None)
     
     for comment in comments:
-        text = comment.body
+        text = (comment.body).split()
         author = comment.author
-        if 'fox' in text:
+        toConvert = []
+        
+        if 'kg' in text:
+            for i in range (1,len(text)):
+                if (text[i] == 'kg' or text[i] == 'kgs') and text[i-1].isdigit():
+                    toConvert.append(text[i-1])
+                    print(toConvert) 
+            #Generate message
+            message = "Congrats Max ur siccc"
+            ##comment.reply(message) #send message
+            print("kg was brough up in {0} in {1}".format(text,comment.submission.title)) 
+            print('/n')
+            
+        elif 'lbs' in text or  'lb' in text:
+            for i in range (1,len(text)):
+                if (text[i] == 'lb' or text[i] == 'lbs') and text[i-1].isdigit():
+                    toConvert.append(text[i-1])
+                    print(toConvert)             
             
             #Generate message
             message = "Congrats Max ur siccc"
             ##comment.reply(message) #send message
-            print("replied to {0} in {1}".format(comment.author,comment.submission.title))  
+            print("lb was brough up in {0} in {1}".format(text,comment.submission.title))  
+            print('/n')
+            
+            #Call conversion from lb to kg
+            
+            
+            
+            
             
     # sleeps for 10 seconds
     print("sleep 10 seconds")
