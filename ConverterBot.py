@@ -6,16 +6,18 @@ import time
 import requests
 
 
-# https://www.exchangerate-api.com/python-currency-api
-url = 'https://v3.exchangerate-api.com/bulk/68ed6db1a6575c73fdd3f383/USD' 
-#last item in the url is the currency that will have exchange rate of 1
+## https://www.exchangerate-api.com/python-currency-api
+#url = 'https://v3.exchangerate-api.com/bulk/68ed6db1a6575c73fdd3f383/USD' 
+## last item in the url is the currency that will have exchange rate of 1
 
-# Making our request
-response = requests.get(url)
-data = response.json()
+## Making our request
+#response = requests.get(url)
+#data = response.json()
 
-# Your JSON object
-print(list(data['rates']))
+## Your JSON object
+#print(data)
+#print(data['rates'])
+#print(data['rates']['CAD'])
 
 CurrencyTypes = ['USD', 'AED', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'BBD', 'BDT', 
                  'BGN', 'BHD', 'BRL', 'BSD', 'BWP', 'BYN', 'CAD', 'CHF', 'CLP', 
@@ -28,6 +30,11 @@ CurrencyTypes = ['USD', 'AED', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'BBD', 'BDT',
                  'QAR', 'RON', 'RSD', 'RUB', 'SAR', 'SCR', 'SEK', 'SGD', 'THB', 
                  'TJS', 'TND', 'TRY', 'TTD', 'TWD', 'TZS', 'UAH', 'UYU', 'UZS', 
                  'VEF', 'VND', 'XAF', 'XCD', 'XOF', 'XPF', 'ZAR', 'ZMW']
+
+CurrencySymbols = { '$' : 'USD',
+                    '£' : 'GBP',
+                    '€' : 'EUR',
+                    '¥' : 'JPY' }
 
 
 
@@ -98,68 +105,59 @@ def lbConversion(comment):
     return(message)
 
 def CurrencyConversion(comment):
+    def convertCurrency(toConvert, converted):
+        if toConvert == []:
+            return converted 
+        else:
+            _converted = []
+            rate = toConvert[0][1]
+            valueToConvert = float(toConvert[0][0])
+            print(toConvert)
+            print(rate)
+            url = 'https://v3.exchangerate-api.com/bulk/68ed6db1a6575c73fdd3f383/{0}'.format(rate)
+            response = requests.get(url)
+            data = response.json()   
+            if rate != 'USD': #convert to usd
+                exchange = data['rates']['USD']             
+                _converted = [valueToConvert,rate,round(valueToConvert*exchange,2),'USD']
+            else: #convert to Euros 
+                exchange = data['rates']['EUR']
+                _converted = [valueToConvert, rate,round(valueToConvert*exchange,2),'EUR']
+            print(_converted)
+            converted.append(_converted)
+            return convertCurrency(toConvert[1:],converted)
+       
+        
     text = (comment.body).split()
     author = comment.author
     text =(comment.body).split()
     toConvert = []
     for i in range(len(text)):
-        if '$' in text[i]:
-            rateToConvertFrom = 'USD'
-            if text[i][text[i].find('$'):].isdigit():
-                toConvert.append(text[i][text[i].find('$'):]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom) 
-                #toConvert.append(rateToConvertFrom) 
-            elif text[i][:text[i].find('$')].isdigit():
-                toConvert.append(text[i][:text[i].find('$')]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom) 
+        for key in CurrencySymbols: 
+            if key in text[i]:
+                rateToConvertFrom = CurrencySymbols[key]
+                conValA = text[i][text[i].find(key):] # these values are needed to deal with $10 vs 10$
+                conValB = text[i][:text[i].find(key)]
+                if conValA.isdigit():
+                    if text[min(i+1,len(text)-1)] in CurrencyTypes:
+                        rateToConvertFrom = text[min(i+1,len(text)-1)]    
+                    toConvert.append([conValB,rateToConvertFrom])
+                elif conValB.isdigit():
+                    if text[min(i+1,len(text)-1)] in CurrencyTypes:
+                        rateToConvertFrom = text[min(i+1,len(text)-1)]
+                    toConvert.append([conValB,rateToConvertFrom])
                 
-        if '£' in text[i]:
-            rateToConvertFrom = 'GBP'
-            if text[i][text[i].find('£'):].isdigit():
-                toConvert.append(text[i][text[i].find('£'):]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom) 
-            elif text[i][:text[i].find('£')].isdigit():
-                toConvert.append(text[i][:text[i].find('£')]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom) 
-                
-        if '€' in text[i]:
-            rateToConvertFrom = 'EUR'
-            if text[i][text[i].find('€'):].isdigit():
-                toConvert.append(text[i][text[i].find('€'):]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom) 
-            elif text[i][:text[i].find('€')].isdigit():
-                toConvert.append(text[i][:text[i].find('€')]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom) 
-        if '¥' in text[i]:
-            rateToConvertFrom = 'JPY'
-            if text[i][text[i].find('¥'):].isdigit():
-                toConvert.append(text[i][text[i].find('¥'):]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom) 
-            elif text[i][:text[i].find('€')].isdigit():
-                toConvert.append(text[i][:text[i].find('¥')]) 
-                if text[min(i+1,len(text)-1)] in CurrencyTypes:
-                    rateToConvertFrom = text[min(i+1,len(text)-1)]
-                toConvert.append(rateToConvertFrom)         
-
    
-               
-    if toConvert != []:
-        print(toConvert)  
-    return('')
+    converted = convertCurrency(toConvert,[])
+                     
+    #Generate message
+    message = ''
+    if converted != []:
+        for i in range(len(converted)):
+            oldSymbol = next(key for key, value in CurrencySymbols.items() if value == converted[i][1])
+            newSymbol =  next(key for key, value in CurrencySymbols.items() if value == converted[i][3])
+            message+=("{0}{1} {2} is {3}{4} {5} \n".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
+    return(message)
 
 def bot_login():
     currencyBot =  praw.Reddit(user_agent='Converter Bot',
