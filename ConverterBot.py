@@ -6,19 +6,6 @@ import time
 import requests
 
 
-## https://www.exchangerate-api.com/python-currency-api
-#url = 'https://v3.exchangerate-api.com/bulk/68ed6db1a6575c73fdd3f383/USD' 
-## last item in the url is the currency that will have exchange rate of 1
-
-## Making our request
-#response = requests.get(url)
-#data = response.json()
-
-## Your JSON object
-#print(data)
-#print(data['rates'])
-#print(data['rates']['CAD'])
-
 CurrencyTypes = ['USD', 'AED', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'BBD', 'BDT', 
                  'BGN', 'BHD', 'BRL', 'BSD', 'BWP', 'BYN', 'CAD', 'CHF', 'CLP', 
                  'CNY', 'COP', 'CZK', 'DKK', 'DOP', 'EEK', 'EGP', 'ETB', 'EUR', 
@@ -54,7 +41,6 @@ def kgConversion(comment):
         for i in range (1,len(text)):
             if (text[i] == 'kg' or text[i] == 'kgs') and text[i-1].isdigit():
                 toConvert.append(text[i-1])
-                #print(toConvert) 
     else:
         for i in range(len(text)):
             if 'kg' in text[i] or  'kgs' in text[i]:
@@ -67,7 +53,7 @@ def kgConversion(comment):
     #Generate message
     if converted != []:
         for i in range(len(converted)):
-            message+=("{0} kgs is {1} lbs \n".format(converted[i][0],converted[i][1]))    
+            message+=("{0} kgs is {1} lbs ".format(converted[i][0],converted[i][1]))    
     return(message)
   
   
@@ -88,7 +74,6 @@ def lbConversion(comment):
         for i in range (1,len(text)):
             if (text[i] == 'lbs' or text[i] == 'lbs') and text[i-1].isdigit():
                 toConvert.append(text[i-1])
-                #print(toConvert) 
                     
     else:
         for i in range(len(text)):
@@ -101,7 +86,7 @@ def lbConversion(comment):
     #Generate message
     if converted != []:
         for i in range(len(converted)):
-            message+=("{0} lbs is {1} kg \n".format(converted[i][0],converted[i][1]))    
+            message+=("{0} lbs is {1} kg ".format(converted[i][0],converted[i][1]))    
     return(message)
 
 def CurrencyConversion(comment):
@@ -112,8 +97,8 @@ def CurrencyConversion(comment):
             _converted = []
             rate = toConvert[0][1]
             valueToConvert = float(toConvert[0][0])
-            print(toConvert)
-            print(rate)
+            #print(toConvert)
+            #print(rate)
             url = 'https://v3.exchangerate-api.com/bulk/68ed6db1a6575c73fdd3f383/{0}'.format(rate)
             response = requests.get(url)
             data = response.json()   
@@ -123,9 +108,11 @@ def CurrencyConversion(comment):
             else: #convert to Euros 
                 exchange = data['rates']['EUR']
                 _converted = [valueToConvert, rate,round(valueToConvert*exchange,2),'EUR']
-            print(_converted)
+            #print(_converted)
             converted.append(_converted)
             return convertCurrency(toConvert[1:],converted)
+    def getSymbol(currency):
+        return(next(key for key, value in CurrencySymbols.items() if value == currency))
        
         
     text = (comment.body).split()
@@ -154,9 +141,10 @@ def CurrencyConversion(comment):
     message = ''
     if converted != []:
         for i in range(len(converted)):
-            oldSymbol = next(key for key, value in CurrencySymbols.items() if value == converted[i][1])
-            newSymbol =  next(key for key, value in CurrencySymbols.items() if value == converted[i][3])
-            message+=("{0}{1} {2} is {3}{4} {5} \n".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
+            oldSymbol = getSymbol(converted[i][3])
+            newSymbol =  getSymbol(converted[i][3])
+            #print(converted[i][1])
+            message+=("{0}{1} {2} is {3}{4} {5} ".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
     return(message)
 
 def bot_login():
@@ -170,22 +158,27 @@ def bot_login():
 
 
 def run_bot(currencyBot):
-    
+    _replied = open('replies.txt','r+')
+    replied = _replied.readlines()
     ##subreddit = currencyBot.subreddit('ssbm')
-    subreddit = currencyBot.subreddit('all')
+    subreddit = currencyBot.subreddit('bottesting')
     comments = subreddit.comments(limit=None)
     
     for comment in comments:
         author = comment.author
-        if author != 'convertoBot': #prevents bot from replying to itself
+        if author != 'convertoBot' and not(comment.id +'\n' in replied): #prevents bot from replying to itself and replying twice
             message = ""
             message+=kgConversion(comment)
             message+=lbConversion(comment)
             message+=CurrencyConversion(comment)
             if message !="":
+                print("replying to " + comment.body + "with \n")
                 print(message)
+                print("--------------------")
                 try:
-                   # comment.reply(message) #send message
+                    print(comment.id)
+                    _replied.write(comment.id + '\n')
+                    comment.reply(message) #send message
                     pass
                 except praw.exceptions.APIException as e:
                     e = str(e).split()
@@ -193,7 +186,8 @@ def run_bot(currencyBot):
                     print("ratelimit exceeded waiting {0} minutes".format(e[10]))
                     time.sleep(int(e[10])*60)                
                 
-            
+    
+    _replied.close()        
     # sleeps for 10 seconds
     print("sleep 10 seconds")
     time.sleep(10)
@@ -214,17 +208,5 @@ while True:
     run_bot(r)
 
         
-
-#t="hello my name is 10lbs"
-#s = t.split()
-#for i in range(len(s)):
-    #print(s[i])
-    #if 'lbs' in s[i] or  'lb' in s[i]:
-        #if s[i][:s[i].find('lb')].isdigit():
-            #print(s[i][:s[i].find('lb')])
-
-
-
-
 
 
