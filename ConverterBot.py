@@ -53,7 +53,7 @@ def kgConversion(comment):
     #Generate message
     if converted != []:
         for i in range(len(converted)):
-            message+=("{0} kgs is {1} lbs ".format(converted[i][0],converted[i][1]))    
+            message+=("{0} kgs is {1} lbs \n".format(converted[i][0],converted[i][1]))    
     return(message)
   
   
@@ -86,7 +86,7 @@ def lbConversion(comment):
     #Generate message
     if converted != []:
         for i in range(len(converted)):
-            message+=("{0} lbs is {1} kg ".format(converted[i][0],converted[i][1]))    
+            message+=("{0} lbs is {1} kg \n".format(converted[i][0],converted[i][1]))    
     return(message)
 
 def CurrencyConversion(comment):
@@ -123,12 +123,14 @@ def CurrencyConversion(comment):
         for key in CurrencySymbols: 
             if key in text[i]:
                 rateToConvertFrom = CurrencySymbols[key]
-                conValA = text[i][text[i].find(key):] # these values are needed to deal with $10 vs 10$
+                conValA = text[i][text[i].find(key)+1:] # these values are needed to deal with $10 vs 10$
                 conValB = text[i][:text[i].find(key)]
+                #print(conValA +" this is A")
+               # print(conValB+" this is B")
                 if conValA.isdigit():
                     if text[min(i+1,len(text)-1)] in CurrencyTypes:
                         rateToConvertFrom = text[min(i+1,len(text)-1)]    
-                    toConvert.append([conValB,rateToConvertFrom])
+                    toConvert.append([conValA,rateToConvertFrom])
                 elif conValB.isdigit():
                     if text[min(i+1,len(text)-1)] in CurrencyTypes:
                         rateToConvertFrom = text[min(i+1,len(text)-1)]
@@ -141,10 +143,10 @@ def CurrencyConversion(comment):
     message = ''
     if converted != []:
         for i in range(len(converted)):
-            oldSymbol = getSymbol(converted[i][3])
+            oldSymbol = getSymbol(converted[i][1])
             newSymbol =  getSymbol(converted[i][3])
             #print(converted[i][1])
-            message+=("{0}{1} {2} is {3}{4} {5} ".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
+            message+=("{0}{1} {2} is {3}{4} {5} \n".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
     return(message)
 
 def bot_login():
@@ -172,14 +174,14 @@ def run_bot(currencyBot):
             message+=lbConversion(comment)
             message+=CurrencyConversion(comment)
             if message !="":
-                print("replying to " + comment.body + "with \n")
+                print("replying to " + comment.body + "with ")
                 print(message)
                 print("--------------------")
                 try:
-                    print(comment.id)
+                    #print(comment.id)
                     _replied.write(comment.id + '\n')
                     comment.reply(message) #send message
-                    pass
+                    
                 except praw.exceptions.APIException as e:
                     e = str(e).split()
                     # sleeps for duration of wait seconds
