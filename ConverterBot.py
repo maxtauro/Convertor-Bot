@@ -120,7 +120,10 @@ def CurrencyConversion(comment):
     text =(comment.body).split()
     toConvert = []
     for i in range(len(text)):
-        for key in CurrencySymbols: 
+        for key in CurrencySymbols:
+            text[i] = text[i].replace(",","")
+            if text[i][-1] == '.' or ',':
+                text[i] = text[i][-1]
             if key in text[i]:
                 rateToConvertFrom = CurrencySymbols[key]
                 conValA = text[i][text[i].find(key)+1:] # these values are needed to deal with $10 vs 10$
