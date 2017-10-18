@@ -56,7 +56,7 @@ def kgConversion(comment):
     #Generate message
     if converted != []: #checks if any values have been converted
         for i in range(len(converted)):
-            message+=("{0} kgs is {1} lbs \n".format(converted[i][0],converted[i][1]))    
+            message+=("{0} kgs is {1} lbs \n  ".format(converted[i][0],converted[i][1]))    
     return(message)
   
   
@@ -89,7 +89,7 @@ def lbConversion(comment):
     #Generate message
     if converted != []:
         for i in range(len(converted)):
-            message+=("{0} lbs is {1} kg \n".format(converted[i][0],converted[i][1]))    
+            message+=("{0} lbs is {1} kg \n  ".format(converted[i][0],converted[i][1]))    
     return(message)
 
 def CurrencyConversion(comment):
@@ -125,7 +125,8 @@ def CurrencyConversion(comment):
     for i in range(len(text)):
         for key in CurrencySymbols:
             text[i] = text[i].replace(",","") # eliminates commas in large numbers
-            if text[i][-1] == '.' or ',':
+            
+            if text[i]!="" and (text[i][-1] == '.' or ','):
                 text[i] = text[i][-1]
             if key in text[i]:
                 rateToConvertFrom = CurrencySymbols[key]
@@ -150,7 +151,7 @@ def CurrencyConversion(comment):
         for i in range(len(converted)):
             oldSymbol = getSymbol(converted[i][1]) # these lines get the currency symbol to be used in the message
             newSymbol =  getSymbol(converted[i][3])
-            message+=("{0}{1} {2} is {3}{4} {5} \n".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
+            message+=("{0}{1} {2} is {3}{4} {5} \n  ".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
     return(message)
 
 def bot_login():
@@ -182,11 +183,11 @@ def run_bot(currencyBot):
                 print("--------------------")
                 try:
                     #print(comment.id)
-                    _replied.write(comment.id + '\n')
+                    _replied.write(comment.id + '\n') # comment id is added to txt file containing any comments that have already been replied to
                     comment.reply(message) #send message
                     
-                except praw.exceptions.APIException as e:
-                    e = str(e).split()
+                except praw.exceptions.APIException as e:  #the frequency the bot is allowed to reply is based on karma
+                    e = str(e).split()                     #less karma means 
                     # sleeps for duration of wait seconds
                     print("ratelimit exceeded waiting {0} minutes".format(e[10]))
                     time.sleep(int(e[10])*60)                
