@@ -26,6 +26,7 @@ CurrencySymbols = { '$' : 'USD',
 
 
 def kgConversion(comment):
+    
     #convert from kg to lbs
     def converttoLbs(toConvert,converted): #converted is a listof(Num, Num) representing (lbs,kgs)
         if toConvert == []:
@@ -33,11 +34,12 @@ def kgConversion(comment):
         else:
             converted.append([toConvert[0],round((float(toConvert[0])*2.2046226218),2)])
             return converttoLbs(toConvert[1:],converted) 
+        
     text = (comment.body).split()
     author = comment.author
     message =""
     toConvert = []
-    if 'kg' in text:
+    if 'kg' in text:  # here we're checking if we need to convert from kg to lb and if the value is before or after kg
         for i in range (1,len(text)):
             if (text[i] == 'kg' or text[i] == 'kgs') and text[i-1].isdigit():
                 toConvert.append(text[i-1])
@@ -48,16 +50,18 @@ def kgConversion(comment):
                 if text[i][j].isdigit():
                     toConvert.append(text[i][j])
                     
-    converted =  converttoLbs(toConvert,[])
+    converted =  converttoLbs(toConvert,[])  #sends values to be converted to lbs
+                                             #and gets a list of converted values
                        
     #Generate message
-    if converted != []:
+    if converted != []: #checks if any values have been converted
         for i in range(len(converted)):
             message+=("{0} kgs is {1} lbs \n".format(converted[i][0],converted[i][1]))    
     return(message)
   
   
-def lbConversion(comment):   
+def lbConversion(comment): 
+    
     #convert from lbs to kg
     def converttoKg(toConvert,converted): #converted is a listof(Num, Num) representing (lbs,kgs)
         if toConvert == []:
@@ -65,16 +69,15 @@ def lbConversion(comment):
         else:
             converted.append([toConvert[0],round((float(toConvert[0])/2.2046226218),2)])
             return converttoKg(toConvert[1:],converted)
+        
     text = (comment.body).split()
-   
     author = comment.author
     message =""
     toConvert = []
-    if 'lbs' in text or  'lb' in text:
+    if 'lbs' in text or  'lb' in text:  # here we're checking if we need to convert from lb to kg and if the value is before or after lb
         for i in range (1,len(text)):
             if (text[i] == 'lbs' or text[i] == 'lbs') and text[i-1].isdigit():
-                toConvert.append(text[i-1])
-                    
+                toConvert.append(text[i-1])       
     else:
         for i in range(len(text)):
             if 'lbs' in text[i] or  'lb' in text[i]:
@@ -95,23 +98,23 @@ def CurrencyConversion(comment):
             return converted 
         else:
             _converted = []
-            rate = toConvert[0][1]
+            rate = toConvert[0][1] #rate is what we are converting from
             valueToConvert = float(toConvert[0][0])
-            #print(toConvert)
-            #print(rate)
             url = 'https://v3.exchangerate-api.com/bulk/68ed6db1a6575c73fdd3f383/{0}'.format(rate)
             response = requests.get(url)
-            data = response.json()   
+            data = response.json()   # Json response gives values to facilitate currency exchange
+            
             if rate != 'USD': #convert to usd
                 exchange = data['rates']['USD']             
                 _converted = [valueToConvert,rate,round(valueToConvert*exchange,2),'USD']
             else: #convert to Euros 
                 exchange = data['rates']['EUR']
                 _converted = [valueToConvert, rate,round(valueToConvert*exchange,2),'EUR']
-            #print(_converted)
+
             converted.append(_converted)
             return convertCurrency(toConvert[1:],converted)
-    def getSymbol(currency):
+        
+    def getSymbol(currency): #determines which symbol to print based on currency rate
         return(next(key for key, value in CurrencySymbols.items() if value == currency))
        
         
@@ -121,16 +124,15 @@ def CurrencyConversion(comment):
     toConvert = []
     for i in range(len(text)):
         for key in CurrencySymbols:
-            text[i] = text[i].replace(",","")
+            text[i] = text[i].replace(",","") # eliminates commas in large numbers
             if text[i][-1] == '.' or ',':
                 text[i] = text[i][-1]
             if key in text[i]:
                 rateToConvertFrom = CurrencySymbols[key]
                 conValA = text[i][text[i].find(key)+1:] # these values are needed to deal with $10 vs 10$
                 conValB = text[i][:text[i].find(key)]
-                #print(conValA +" this is A")
-               # print(conValB+" this is B")
-                if conValA.isdigit():
+
+                if conValA.isdigit(): #check if amount is before or after currency symbol
                     if text[min(i+1,len(text)-1)] in CurrencyTypes:
                         rateToConvertFrom = text[min(i+1,len(text)-1)]    
                     toConvert.append([conValA,rateToConvertFrom])
@@ -146,9 +148,8 @@ def CurrencyConversion(comment):
     message = ''
     if converted != []:
         for i in range(len(converted)):
-            oldSymbol = getSymbol(converted[i][1])
+            oldSymbol = getSymbol(converted[i][1]) # these lines get the currency symbol to be used in the message
             newSymbol =  getSymbol(converted[i][3])
-            #print(converted[i][1])
             message+=("{0}{1} {2} is {3}{4} {5} \n".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
     return(message)
 
@@ -158,16 +159,15 @@ def bot_login():
                                client_secret='XuFjA6em6VsKPCuQrmn-kDaMQ3s',
                                username='convertoBot',
                                password='t0r7ez!')
-    check.expect("check authentication",currencyBot.user.me(),"convertoBot")
+    check.expect("check authentication",currencyBot.user.me(),"convertoBot") #checks if login in succesful
     return currencyBot
 
 
 def run_bot(currencyBot):
     _replied = open('replies.txt','r+')
     replied = _replied.readlines()
-    ##subreddit = currencyBot.subreddit('ssbm')
-    subreddit = currencyBot.subreddit('bottesting')
-    comments = subreddit.comments(limit=None)
+    subreddit = currencyBot.subreddit('all') #the subreddit the bot browses and comments too
+    comments = subreddit.comments(limit=None)#there will be no limit on the number of comments checked
     
     for comment in comments:
         author = comment.author
@@ -209,7 +209,7 @@ def run_bot(currencyBot):
 
 
 r = bot_login()
-while True:
+while True:     #login the bot and then run the bot
     run_bot(r)
 
         
