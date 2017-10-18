@@ -56,7 +56,7 @@ def kgConversion(comment):
     #Generate message
     if converted != []: #checks if any values have been converted
         for i in range(len(converted)):
-            message+=("{0} kgs is {1} lbs \n  ".format(converted[i][0],converted[i][1]))    
+            message+=("{0} kgs is {1} lbs \n\n".format(converted[i][0],converted[i][1]))    
     return(message)
   
   
@@ -89,7 +89,7 @@ def lbConversion(comment):
     #Generate message
     if converted != []:
         for i in range(len(converted)):
-            message+=("{0} lbs is {1} kg \n  ".format(converted[i][0],converted[i][1]))    
+            message+=("{0} lbs is {1} kg \n\n".format(converted[i][0],converted[i][1]))    
     return(message)
 
 def CurrencyConversion(comment):
@@ -151,7 +151,7 @@ def CurrencyConversion(comment):
         for i in range(len(converted)):
             oldSymbol = getSymbol(converted[i][1]) # these lines get the currency symbol to be used in the message
             newSymbol =  getSymbol(converted[i][3])
-            message+=("{0}{1} {2} is {3}{4} {5} \n  ".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
+            message+=("{0}{1} {2} is {3}{4} {5} \n\n".format(oldSymbol,converted[i][0],converted[i][1],newSymbol,converted[i][2],converted[i][3]))    
     return(message)
 
 def bot_login():
