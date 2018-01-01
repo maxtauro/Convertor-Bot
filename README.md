@@ -6,4 +6,5 @@ weights, currencies and/or distances and replies with conversions to these value
 • The bot parses the comments and determines what type of measurement the comment contains and
 replies with converted values for that comment
 
-• Handles querying and resp
+• Handles querying and responding on reddit using PRAW API, and uses Exchange-Rate API to determine
+current exchange rates
